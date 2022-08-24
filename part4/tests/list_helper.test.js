@@ -1,4 +1,81 @@
 const listHelper = require('../utils/list_helper')
+const mongoose = require('mongoose')
+const supertest = require('supertest')
+const app = require('../app')
+const api = supertest(app)
+const Blog = require('../models/blog')
+const helper = require('./test_helper')
+
+test('Blogs list length', async () => {
+  const response = await api.get('/api/blogs')
+
+  expect(response.body).toHaveLength(helper.initialBlogs.length)
+})
+
+test("blogs have id property named id instead of _id", async () => {
+  const response = await api.get("/api/blogs");
+
+  const ids = response.body.map((blog) => blog.id);
+
+  for (const id of ids) {
+    expect(id).toBeDefined();
+  }
+});
+
+test('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'async/await simplifies making async calls',
+    author: "Mariam Pavlenishvili",
+    url: "https://fullstackopen.com/en/part4/testing_the_backend#supertest",
+    likes: 25
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const blogs = response.body.map(blog => blog.title)
+
+  expect(response.body).toHaveLength(helper.initialBlogs.length + 1)
+  expect(blogs).toContain(
+    'async/await simplifies making async calls'
+  )
+})
+
+test("if likes property is missing default is 0", async () => {
+  const newBlog = {
+    title: 'for testing',
+    author: "Mariam Pavlenishvili",
+    url: "https://fullstackopen.com/en/part4/testing_the_backend#supertest",
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const blogs = await helper.blogsInDb();
+  expect(blogs[blogs.length - 1].likes).toBe(0);
+});
+
+test("returns 400 status code if title and url missing", async () => {
+  const newBlog = {
+    author: "Mariam Pavlenishvili",
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  const response = await api.get('/api/blogs')
+  expect(response.body).toHaveLength(helper.initialBlogs.length)
+});
 
 test('dummy returns one', () => {
   const blogs = []
