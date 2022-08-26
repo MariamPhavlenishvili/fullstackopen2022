@@ -1,9 +1,10 @@
 const Router = require('express').Router()
 const Blog = require('../models/blog')
+const jwt = require('jsonwebtoken')
 
 Router.get('/:id', async (request, response) => {
   const id = request.params.id
-  const blog = await Blog.findById(id)
+  const blog = await Blog.findById(id).populate('user')
   try {
     if (blog) {
       response.json(blog)
@@ -16,16 +17,35 @@ Router.get('/:id', async (request, response) => {
 })
 
 Router.delete('/:id', async (request, response, next) => {
+  const token = await request.token;
+  const user = await request.user;
+
+  if (!token) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+  
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+
+  const blog = await Blog.findById(request.params.id);
+
   try {
-    await Blog.findByIdAndRemove(request.params.id)
-    response.status(204).end()
+    if (blog.user.toString() === user.id.toString()) {
+      await Blog.findByIdAndRemove(request.params.id)
+      response.status(204).end()
+    } else {
+      response.status(401).json({ error: "unauthorized operation" });
+    }
   } catch(err){
     next(err)
   }
 })
 
 Router.get('/', async (request, response, next) => {
-  const blogs = await Blog.find({})
+  const blogs = await Blog.find({}).populate('user')
 
   try {  
     response.json(blogs)
@@ -35,11 +55,33 @@ Router.get('/', async (request, response, next) => {
 })
 
 Router.post('/', async (request, response, next) => {
-  const blog = new Blog(request.body)
-  const result = await blog.save()
+  const body = await request.body
+  const token = await request.token
+  const user = await request.user
 
+  if (!token) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token missing or invalid" });
+  }
+
+  const blog = new Blog({
+      title: body.title,
+      author: body.author,
+      url: body.url,
+      likes: body.likes,
+      user: user._id
+    })
+  
   try {
-    response.status(201).json(result)
+    const savedBlog = await blog.save()
+    user.blogs = user.blogs.concat(savedBlog._id)
+    await user.save()
+    response.status(201).json(savedBlog)
   } catch(err) {
     next(err)
   }

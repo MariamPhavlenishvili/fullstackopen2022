@@ -77,6 +77,56 @@ test("returns 400 status code if title and url missing", async () => {
   expect(response.body).toHaveLength(helper.initialBlogs.length)
 });
 
+test("try to add user without password", async () => {
+  const newUser = {
+    username: "Jack Sparrow",
+    name: "Jack"
+  }
+
+  const response = await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+    .expect("Content-Type", /application\/json/);
+
+  expect(response.body.error).toContain("username and password are required")
+});
+
+test("try to add user with less than 3 char password", async () => {
+  const newUser = {
+    username: "Jack Sparrow",
+    name: "Jack",
+    password: "aw"
+  }
+
+  const response = await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+    .expect("Content-Type", /application\/json/);
+
+  expect(response.body.error).toContain("username and password must be at least 3 characters long")
+});
+
+test("token not provided", async () => {
+  const token = null
+
+  const newBlog = {
+    title: 'for testing',
+    author: "Mariam Pavlenishvili",
+    url: "https://fullstackopen.com/en/part4/testing_the_backend#supertest",
+    likes: 20
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+    .expect("Content-Type", /application\/json/);
+
+    expect(response.body.error).toContain("token invalid")
+})
+
 test('dummy returns one', () => {
   const blogs = []
 
