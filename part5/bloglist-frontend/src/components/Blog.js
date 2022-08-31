@@ -31,11 +31,13 @@ const Blog = ({ blog, updateLikes, deleteBlog }) => {
         {blog.title} {blog.author}
         {!visible ? <button onClick={handleView}>view</button> :
           <>
-            <button onClick={handleView}>hide</button>
-            <div><a href={blog.url}>{blog.url}</a> </div>
-            <div>likes {blog.likes} <button onClick={handleLike}>like</button></div>
-            <div>{blog.user.username}</div>
-            <button onClick={handleDelete}>Romove</button>
+            <div className='blog-details'>
+              <button onClick={handleView}>hide</button>
+              <div><a href={blog.url}>{blog.url}</a> </div>
+              <div>likes {blog.likes} <button onClick={handleLike}>like</button></div>
+              <div>{blog.user.username}</div>
+              <button onClick={handleDelete}>Romove</button>
+            </div>
           </>
         }
       </div>
