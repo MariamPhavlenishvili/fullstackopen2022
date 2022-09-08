@@ -7,10 +7,10 @@ const AnecdoteForm = () => {
 
     const dispatch = useDispatch()
 
-    const createAnecdote = (e) => {
+    const createAnecdote = async (e) => {
         e.preventDefault()
         dispatch(create(e.target.anecdote.value))
-        dispatch(createNotification(`New anecdote added: ${e.target.anecdote.value}`));
+        dispatch(createNotification(`New anecdote added: ${e.target.anecdote.value}`, 5));
     }
 
     return (
