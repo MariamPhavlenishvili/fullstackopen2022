@@ -18,15 +18,14 @@ const Login = ({setUser, setMessage}) => {
             'loggedBlogappUser', JSON.stringify(user)
           ) 
           blogService.setToken(user.token)
-          console.log(user.token)
           setUser(user)
           setUsername('')
           setPassword('')
         } catch (exception) {
-            console.log(exception.response.data.error)
+            console.log(exception.response.data)
             setMessage({
                 status: 'error',
-                message: `${exception.response.data.error}`
+                message: 'Invalid username or password'
             })
         } finally {
             setTimeout(() => {

@@ -99,8 +99,8 @@ const App = () => {
     <div>
       <h2>blogs</h2>
       <Notification message={message}/>
-      <div>{user.username} logged in <button onClick={handleLogout}>logout</button></div>
-      <Togglable buttonLabel="new blog">
+      <div className='logged'>{user.username} logged in <button onClick={handleLogout}>logout</button></div>
+      <Togglable id="togglabe" buttonLabel="new blog">
         <CreateBlog setBlogs={setBlogs} blogs={blogs} setMessage={setMessage}/>
       </Togglable>
       {blogs.map(blog =>
